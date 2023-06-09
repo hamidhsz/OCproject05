@@ -47,6 +47,9 @@ exports.getOneProduct = (req, res, next) => {
  *
  */
 exports.orderProducts = (req, res, next) => {
+  
+  
+
   if (!req.body.contact ||
       !req.body.contact.firstName ||
       !req.body.contact.lastName ||
@@ -58,8 +61,9 @@ exports.orderProducts = (req, res, next) => {
   }
   let queries = [];
   for (let productId of req.body.products) {
+    
     const queryPromise = new Promise((resolve, reject) => {
-      Product.findById(productId).then(
+      Product.findById(productId.id).then(
         (product) => {
           if (!product) {
             reject('Product not found: ' + productId);
@@ -72,6 +76,7 @@ exports.orderProducts = (req, res, next) => {
           reject('Database error!');
         }
       )
+    
     });
     queries.push(queryPromise);
   }
