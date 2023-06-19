@@ -1,5 +1,3 @@
-//** JS code responsible for rendering the cart items on cart.html page based on the data stored in the localstorage. */
-
 // Get the cart items container element
 const cartItemsContainer = document.getElementById('cart__items');
 // Get the total quantity and price elements
@@ -11,88 +9,129 @@ const cartData = JSON.parse(localStorage.getItem('cartStorage'));
 
 let currentItems = JSON.parse(localStorage.getItem('cartStorage'));
 
-// Check if the cart is empty or not
-if (cartData) {
-  //cartData exists and it's not empty (truthy value)
-  
-  // Iterate over each product in the cartData array
-  cartData.forEach(product => {
-    // Create HTML elements for each cart item
-    const cartItems = `
-    <article class="cart__item" data-id="${product.id}" data-color="${product.color}">
-        <div class="cart__item__img">
-          <img src="${product.image}" alt="Photo of a sofa">
-        </div>
-        <div class="cart__item__content">
-          <div class="cart__item__content__description">
-            <h2>${product.name}</h2>
-            <p>${product.color}</p>
-            <p>€${product.price}</p>
-          </div>
-          <div class="cart__item__content__settings">
-            <div class="cart__item__content__settings__quantity">
-              <p>Quantity :</p>
-              <input type="number" class="itemQuantity" name="itemQuantity" min="1" max="100" value="${product.quantity}">
-            </div>
-            <div class="cart__item__content__settings__delete">
-              <p class="deleteItem">Delete</p>
-            </div>
-          </div>
-        </div>
-      </article>
-    `;
-    // Append the generated HTML to the cart items container
-    cartItemsContainer.innerHTML += cartItems;
+// Declare the products variable
+let products = [];
 
+// Check if the cart is empty or not
+// make an API call to fetch the product data
+fetch('http://localhost:3000/api/products')
+  .then(response => response.json())
+  .then(data => {
+    // Assign the data from the API response to the products variable
+    products = data;
+
+    if (cartData) {
+      cartData.forEach(product => {
+        // find the product object with the same _id as the current product
+        const apiProduct = products.find(apiProduct => apiProduct._id === product.id);
+
+        // use the price from the API response
+        const price = apiProduct.price;
+
+        const cartItems = `
+          <article class="cart__item" data-id="${product.id}" data-color="${product.color}">
+            <div class="cart__item__img">
+              <img src="${product.image}" alt="Photo of a sofa">
+            </div>
+            <div class="cart__item__content">
+              <div class="cart__item__content__description">
+                <h2>${product.name}</h2>
+                <p>${product.color}</p>
+                <p>€${price}</p>
+              </div>
+              <div class="cart__item__content__settings">
+                <div class="cart__item__content__settings__quantity">
+                  <p>Quantity :</p>
+                  <input type="number" class="itemQuantity" name="itemQuantity" min="1" max="100" value="${product.quantity}">
+                </div>
+                <div class="cart__item__content__settings__delete">
+                  <p class="deleteItem">Delete</p>
+                </div>
+              </div>
+            </div>
+          </article>
+        `;
+
+        cartItemsContainer.innerHTML += cartItems;
+      });
+
+      // Calculate the total quantity and price
+      const totalQuantity = cartData.reduce((total, product) => total + Number(product.quantity), 0);
+      const totalPrice = cartData.reduce((total, product) => {
+        // find the product object with the same _id as the current product
+        const apiProduct = products.find(apiProduct => apiProduct._id === product.id);
+
+        // use the price from the API response
+        const price = apiProduct.price;
+
+        return total + (Number(price) * Number(product.quantity));
+      }, 0);
+
+      // Update the total quantity and price elements
+      totalQuantityElement.textContent = totalQuantity;
+      totalPriceElement.textContent = totalPrice;
+
+      // Add event listeners to quantity inputs
+      addQuantityEventListeners();
+    } else {
+      // Cart is empty, display a message
+      const noCartMessage = document.createElement('p');
+      noCartMessage.textContent = 'Your cart is empty.';
+      cartItemsContainer.appendChild(noCartMessage);
+
+      // Hide the total price and quantity element
+      document.querySelector('.cart__price').style.display = 'none';
+    }
   });
 
-  // Calculate the total quantity and price
-  const totalQuantity = cartData.reduce((total, product) => total + Number(product.quantity), 0);
-  const totalPrice = cartData.reduce((total, product) => total + (Number(product.price) * Number(product.quantity)), 0);
-
-  // Update the total quantity and price elements
-  totalQuantityElement.textContent = totalQuantity;
-  totalPriceElement.textContent = totalPrice;
-} else {
-  // Cart is empty, display a message
-  const noCartMessage = document.createElement('p');
-  noCartMessage.textContent = 'Your cart is empty.';
-  cartItemsContainer.appendChild(noCartMessage);
-
-  // Hide the total price and quantity element
-  document.querySelector('.cart__price').style.display = 'none';
-}
-
 // Modification (delete buttons)
-const deleteButtons = document.querySelectorAll('.deleteItem');
-deleteButtons.forEach(button => button.addEventListener('click', (event) => {
-  const articleDelete = event.target.closest("article");
-  const checkId = articleDelete.getAttribute('data-id');
-  for (let i = 0; i < currentItems.length; i++) {
-    if (checkId === currentItems[i].id) {
-      currentItems.splice(i, 1);
-      break;
+cartItemsContainer.addEventListener('click', (event) => {
+  if (event.target.classList.contains('deleteItem')) {
+    const articleDelete = event.target.closest("article");
+    const checkId = articleDelete.getAttribute('data-id');
+    for (let i = 0; i < currentItems.length; i++) {
+      if (checkId === currentItems[i].id) {
+        currentItems.splice(i, 1);
+        break;
+      }
     }
-  }
-  if (currentItems.length === 0) {
-    localStorage.removeItem('cartStorage');
-  } else {
-    localStorage.setItem('cartStorage', JSON.stringify(currentItems));
-  }
-  articleDelete.remove();
+    if (currentItems.length === 0) {
+      localStorage.removeItem('cartStorage');
+    } else {
+      localStorage.setItem('cartStorage', JSON.stringify(currentItems));
+    }
+    articleDelete.remove();
 
-  const totalQuantity = currentItems.reduce((total, product) => total + Number(product.quantity), 0);
-  const totalPrice = currentItems.reduce((total, product) => total + (Number(product.price) * Number(product.quantity)), 0);
-  totalQuantityElement.textContent = totalQuantity;
-  totalPriceElement.textContent = totalPrice;
+    // Recalculate total quantity and price
+    let totalQuantity = currentItems.reduce((total, product) => total + Number(product.quantity), 0);
+    let totalPrice = currentItems.reduce((total, product) => {
+      // find the product object with the same _id as the current product
+      const apiProduct = products.find(apiProduct => apiProduct._id === product.id);
 
-  console.log(currentItems);
-}));
+      // check if the product object was found
+      if (apiProduct) {
+        // use the price from the API response
+        const price = apiProduct.price;
+
+        return total + (Number(price) * Number(product.quantity));
+      } else {
+        // handle the case where the product object was not found
+        // ...
+      }
+    }, 0);
+
+    // Update the total quantity and price elements
+    totalQuantityElement.textContent = totalQuantity;
+    totalPriceElement.textContent = totalPrice;
+
+    console.log(currentItems);
+  }
+});
 
 // Modification (Quantity)
 const handleChange = function (event) {
   let newQuantity = event.target.value;
-  
+
   let currentSelected = event.target.closest('article');
   const checkId = currentSelected.getAttribute('data-id');
   const checkColor = currentSelected.getAttribute('data-color');
@@ -103,14 +142,24 @@ const handleChange = function (event) {
   localStorage.setItem('cartStorage', JSON.stringify(currentItems));
 
   const totalQuantity = currentItems.reduce((total, product) => total + Number(product.quantity), 0);
-  const totalPrice = currentItems.reduce((total, product) => total + (Number(product.price) * Number(product.quantity)), 0);
+  const totalPrice = currentItems.reduce((total, product) => {
+    // find the product object with the same _id as the current product
+    const apiProduct = products.find(apiProduct => apiProduct._id === product.id);
+
+    // use the price from the API response
+    const price = apiProduct.price;
+
+    return total + (Number(price) * Number(product.quantity));
+  }, 0);
   totalQuantityElement.textContent = totalQuantity;
   totalPriceElement.textContent = totalPrice;
 };
 
-document.querySelectorAll('.itemQuantity').forEach(quantityInput => {
-  quantityInput.addEventListener('change', handleChange);
-});
+function addQuantityEventListeners() {
+  document.querySelectorAll('.itemQuantity').forEach(quantityInput => {
+    quantityInput.addEventListener('change', handleChange);
+  });
+}
 
 const orderButton = document.getElementById('order');
 orderButton.addEventListener('click', (event) => {

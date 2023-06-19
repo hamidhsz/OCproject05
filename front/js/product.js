@@ -22,7 +22,6 @@ fetch(`http://localhost:3000/api/products/${productId}`)
     document.getElementById('price').textContent = product.price;
     document.getElementById('description').textContent = product.description;
 
-    const price = product.price; // ! Store the price separately
 
     // Add color options dynamically
     const colorsSelect = document.getElementById('colors');
@@ -64,7 +63,7 @@ fetch(`http://localhost:3000/api/products/${productId}`)
         id:productId,
         color:selectedColor,
         quantity:Number(quantity),
-        price: product.price,
+        // price: product.price,
         name:product.name,
         image: product.imageUrl,
         altTxt: product.altTxt
