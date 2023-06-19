@@ -22,6 +22,8 @@ fetch(`http://localhost:3000/api/products/${productId}`)
     document.getElementById('price').textContent = product.price;
     document.getElementById('description').textContent = product.description;
 
+    const price = product.price; // ! Store the price separately
+
     // Add color options dynamically
     const colorsSelect = document.getElementById('colors');
     /*Here, we have an object called product with a property called colors 
@@ -38,26 +40,25 @@ fetch(`http://localhost:3000/api/products/${productId}`)
     const addToCartButton = document.getElementById('addToCart');
     addToCartButton.addEventListener('click', () => { 
       const selectedColor = colorsSelect.value;
-      if (selectedColor === '')return; //do nothing 
+      if (selectedColor === '')
+      return; //do nothing 
       const quantity = document.getElementById('quantity').value;
       
-      if (quantity === '0')return;
+      if (quantity === '0')
+      return;
       let cartData = []; //
 
       if(localStorage.getItem('cartStorage')){ //Retrieving the stored value from localStorage
-        cartData =JSON.parse(localStorage.getItem('cartStorage'));
+        cartData =JSON.parse(localStorage.getItem('cartStorage')); //If there is a stored value in localStorage, retrieve it using localStorage.getItem(). Since the retrieved value is stored as a string, JSON.parse() is used to convert it back to an array and assign it to the cartData variable.
       }
 
       //check if product already exist in cart
       const existingProductIndex = cartData.findIndex(
-        (product) => product.id === productId && product.color === selectedColor);
+        (product) => product.id === productId && product.color === selectedColor); //searches for an existing product in the cartData array that matches the provided productId and selectedColor. The findIndex() method returns the index of the first matching element or -1 if no match is found.
       
       if (existingProductIndex !== -1){
         // product already exists in the cart so update the quantity: 
-        
-        
         cartData[existingProductIndex].quantity += Number(quantity);
-        
       } else {
         const productInfo = {
         id:productId,
@@ -71,8 +72,8 @@ fetch(`http://localhost:3000/api/products/${productId}`)
       };
       cartData.push(productInfo);
     }
-      console.log(cartData)
-      localStorage.setItem('cartStorage', JSON.stringify(cartData)); //Storing a value in localStorage  
+      
+      localStorage.setItem('cartStorage', JSON.stringify(cartData)); //Storing a value in localStorage, This ensures that the data can be stored as a string and retrieved later usingß 
   });
 
 });

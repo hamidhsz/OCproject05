@@ -22,5 +22,5 @@ fetch('http://localhost:3000/api/products')
           </a>`
         
        });
-       document.querySelector('#items').insertAdjacentHTML('afterbegin',productList);
+       document.querySelector('#items').insertAdjacentHTML('afterbegin',productList); // the 'afterbegin' parameter, which means we want to insert the HTML content at the beginning of the selected element, right after its opening tag. The HTML content that will be inserted is stored in the productList variable.
     });

@@ -5,3 +5,6 @@ const extractedID = generetedOrderId.substring(0, 8);
 
 
 document.getElementById('orderId').innerHTML = extractedID;
+
+
+localStorage.removeItem('cartStorage');

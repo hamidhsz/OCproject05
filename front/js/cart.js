@@ -1,18 +1,19 @@
 //** JS code responsible for rendering the cart items on cart.html page based on the data stored in the localstorage. */
 
-// ! Get the cart items container element
+// Get the cart items container element
 const cartItemsContainer = document.getElementById('cart__items');
-// ! Get the total quantity and price elements
+// Get the total quantity and price elements
 const totalQuantityElement = document.getElementById('totalQuantity');
 const totalPriceElement = document.getElementById('totalPrice');
 
-// ! Retrieve cart data from localStorage
+// Retrieve cart data from localStorage
 const cartData = JSON.parse(localStorage.getItem('cartStorage'));
 
 let currentItems = JSON.parse(localStorage.getItem('cartStorage'));
 
 // Check if the cart is empty or not
-if (cartData) { //cartData exists and it's not empty (turthy value)
+if (cartData) {
+  //cartData exists and it's not empty (truthy value)
   
   // Iterate over each product in the cartData array
   cartData.forEach(product => {
@@ -46,9 +47,8 @@ if (cartData) { //cartData exists and it's not empty (turthy value)
   });
 
   // Calculate the total quantity and price
-  
-  const totalQuantity = cartData.reduce((total, product) => total + product.quantity, 0);
-  const totalPrice = cartData.reduce((total, product) => total + (product.price * product.quantity), 0);
+  const totalQuantity = cartData.reduce((total, product) => total + Number(product.quantity), 0);
+  const totalPrice = cartData.reduce((total, product) => total + (Number(product.price) * Number(product.quantity)), 0);
 
   // Update the total quantity and price elements
   totalQuantityElement.textContent = totalQuantity;
@@ -59,49 +59,39 @@ if (cartData) { //cartData exists and it's not empty (turthy value)
   noCartMessage.textContent = 'Your cart is empty.';
   cartItemsContainer.appendChild(noCartMessage);
 
-  // nothing in the card so, hide the total price and quantity element
+  // Hide the total price and quantity element
   document.querySelector('.cart__price').style.display = 'none';
 }
 
-//modification (delete buttons)
+// Modification (delete buttons)
 const deleteButtons = document.querySelectorAll('.deleteItem');
-        deleteButtons.forEach(button => button.addEventListener('click', (event) => {
-          const articleDelete = event.target.closest("article");
-          const checkId = articleDelete.getAttribute('data-id');
-          
-          
-          // let currentItems = JSON.parse(localStorage.getItem('cartStorage'));
-          console.log(currentItems);
-          for (let i = 0; i<currentItems.length; i++){
-            if (checkId === currentItems[i].id){
-              currentItems.splice(i,1);
-              break;
-            }
+deleteButtons.forEach(button => button.addEventListener('click', (event) => {
+  const articleDelete = event.target.closest("article");
+  const checkId = articleDelete.getAttribute('data-id');
+  for (let i = 0; i < currentItems.length; i++) {
+    if (checkId === currentItems[i].id) {
+      currentItems.splice(i, 1);
+      break;
+    }
+  }
+  if (currentItems.length === 0) {
+    localStorage.removeItem('cartStorage');
+  } else {
+    localStorage.setItem('cartStorage', JSON.stringify(currentItems));
+  }
+  articleDelete.remove();
 
+  const totalQuantity = currentItems.reduce((total, product) => total + Number(product.quantity), 0);
+  const totalPrice = currentItems.reduce((total, product) => total + (Number(product.price) * Number(product.quantity)), 0);
+  totalQuantityElement.textContent = totalQuantity;
+  totalPriceElement.textContent = totalPrice;
 
-          };
-          if (currentItems.length === 0){
-            localStorage.removeItem('cartStorage');
+  console.log(currentItems);
+}));
 
-          } else{
-            localStorage.setItem('cartStorage',JSON.stringify(currentItems))
-
-
-          }
-          articleDelete.remove();
-          const totalQuantity = currentItems.reduce((total, product) => total + product.quantity, 0);
-          const totalPrice = currentItems.reduce((total, product) => total + (product.price * product.quantity), 0);
-          totalQuantityElement.textContent = totalQuantity;
-          totalPriceElement.textContent = totalPrice;
-
-          console.log(currentItems);
-    }));
-    
-
-//modification (Qantity)
-const handleChange = function(event) {
+// Modification (Quantity)
+const handleChange = function (event) {
   let newQuantity = event.target.value;
-  // console.log(typeof(newQuantity));
   
   let currentSelected = event.target.closest('article');
   const checkId = currentSelected.getAttribute('data-id');
@@ -111,10 +101,9 @@ const handleChange = function(event) {
   selectedItem.quantity = newQuantity;
 
   localStorage.setItem('cartStorage', JSON.stringify(currentItems));
-  
 
   const totalQuantity = currentItems.reduce((total, product) => total + Number(product.quantity), 0);
-  const totalPrice = currentItems.reduce((total, product) => total + (product.price * product.quantity), 0);
+  const totalPrice = currentItems.reduce((total, product) => total + (Number(product.price) * Number(product.quantity)), 0);
   totalQuantityElement.textContent = totalQuantity;
   totalPriceElement.textContent = totalPrice;
 };
@@ -123,89 +112,72 @@ document.querySelectorAll('.itemQuantity').forEach(quantityInput => {
   quantityInput.addEventListener('change', handleChange);
 });
 
-
-
-
-
-
 const orderButton = document.getElementById('order');
-orderButton.addEventListener('click', (event)=> {
+orderButton.addEventListener('click', (event) => {
   event.preventDefault();
-  //handle userdata input
-const firstNameInput = document.getElementById('firstName').value;
-const lastNameInput = document.getElementById('lastName').value;
-const addressInput = document.getElementById('address').value;
-const cityInput = document.getElementById('city').value;
-const emailInput = document.getElementById('email').value;
+  
+  // Handle user data input
+  const firstNameInput = document.getElementById('firstName').value;
+  const lastNameInput = document.getElementById('lastName').value;
+  const addressInput = document.getElementById('address').value;
+  const cityInput = document.getElementById('city').value;
+  const emailInput = document.getElementById('email').value;
+
   // Regex patterns for validation
-var namePattern = /^[a-zA-Z\s'-]+$/;
-var addressPattern = /^[a-zA-Z0-9\s,'-]+$/;
-var cityPattern = /^[a-zA-Z\s]+$/;
-var emailPattern = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+  var namePattern = /^[a-zA-Z\s'-]+$/;
+  var addressPattern = /^[a-zA-Z0-9\s,'-]+$/;
+  var cityPattern = /^[a-zA-Z\s]+$/;
+  var emailPattern = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+
   // Clear any previous error messages
-document.getElementById("firstNameErrorMsg").textContent = "";
-document.getElementById("lastNameErrorMsg").textContent = "";
-document.getElementById("addressErrorMsg").textContent = "";
-document.getElementById("cityErrorMsg").textContent = "";
-document.getElementById("emailErrorMsg").textContent = "";
+  document.getElementById("firstNameErrorMsg").textContent = "";
+  document.getElementById("lastNameErrorMsg").textContent = "";
+  document.getElementById("addressErrorMsg").textContent = "";
+  document.getElementById("cityErrorMsg").textContent = "";
+  document.getElementById("emailErrorMsg").textContent = "";
+
   // Validate input fields
-if (!namePattern.test(firstNameInput)) {
-  document.getElementById("firstNameErrorMsg").textContent = "Invalid first name";
-  return;
-}
-if (!namePattern.test(lastNameInput)) {
-  document.getElementById("lastNameErrorMsg").textContent = "Invalid last name";
-  return;
-}
-if (!addressPattern.test(addressInput)) {
-  document.getElementById("addressErrorMsg").textContent = "Invalid address";
-  return;
-}
-if (!cityPattern.test(cityInput)) {
-  document.getElementById("cityErrorMsg").textContent = "Invalid city";
-  return;
-}
-if (!emailPattern.test(emailInput)) {
-  document.getElementById("emailErrorMsg").textContent = "Invalid email";
-  return;
-}
+  if (!namePattern.test(firstNameInput)) {
+    document.getElementById("firstNameErrorMsg").textContent = "Invalid first name";
+    return;
+  }
+  if (!namePattern.test(lastNameInput)) {
+    document.getElementById("lastNameErrorMsg").textContent = "Invalid last name";
+    return;
+  }
+  if (!addressPattern.test(addressInput)) {
+    document.getElementById("addressErrorMsg").textContent = "Invalid address";
+    return;
+  }
+  if (!cityPattern.test(cityInput)) {
+    document.getElementById("cityErrorMsg").textContent = "Invalid city";
+    return;
+  }
+  if (!emailPattern.test(emailInput)) {
+    document.getElementById("emailErrorMsg").textContent = "Invalid email";
+    return;
+  }
+
   let data = {
     contact: {
-    firstName: firstNameInput,
-    lastName: lastNameInput,
-    address: addressInput,
-    city: cityInput,
-    email: emailInput,
+      firstName: firstNameInput,
+      lastName: lastNameInput,
+      address: addressInput,
+      city: cityInput,
+      email: emailInput,
     },
     products: currentItems
-    
   };
-  // console.log(data);
-  // console.log(data.contact.products);
+
   let options = {
     method: 'POST',
     headers: {
-    'Content-Type': 'application/json',
+      'Content-Type': 'application/json',
     },
     body: JSON.stringify(data),
-    };
-    
-    fetch('http://localhost:3000/api/products/order', options)
+  };
+
+  fetch('http://localhost:3000/api/products/order', options)
     .then(resp => resp.json())
-    .then(data => window.location.href =  'file:///Users/Hamid/Coding/OC/Project05/OCproject05/front/html/confirmation.html?orderId='+ data.orderId )
+    .then(data => window.location.href = 'file:///Users/Hamid/Coding/OC/Project05/OCproject05/front/html/confirmation.html?orderId=' + data.orderId);
 });
-
-
-
-
-
-
-
-
-    
-
-
-
-
-
-
